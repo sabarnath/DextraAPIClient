@@ -10,6 +10,11 @@ package CVXtractorService;
 public class CVXtractor_ServiceLocator extends org.apache.axis.client.Service implements CVXtractorService.CVXtractor_Service {
 
 /**
+	 * 
+	 */
+	private static final long serialVersionUID = 5456191412473132104L;
+
+/**
  * WSDL File for CVXtractorService
  */
 

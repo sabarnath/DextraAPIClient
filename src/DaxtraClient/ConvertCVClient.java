@@ -33,7 +33,11 @@ public class ConvertCVClient {
 	}
 	
     public static String getCV(){
-    	File resume = new File("/home/smi-user/Krishnan_Resume.doc");
+    	 String workingDir = System.getProperty("user.dir");
+    	//File resume = new File(workingDir+"/Data/pdf_request.pdf");
+    	//File resume = new File(workingDir+"/Data/doc_request.doc");
+    	//File resume = new File(workingDir+"/Data/ppt_request.ppt");
+    	File resume = new File(workingDir+"/Data/image_request.png");
         String encodedBase64 = null;
         try {
         	
