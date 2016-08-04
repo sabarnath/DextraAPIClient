@@ -1,34 +1,57 @@
 package com.sabari.client;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.net.URL;
 
-import javax.xml.soap.*;
+import javax.xml.soap.MessageFactory;
+import javax.xml.soap.MimeHeaders;
+import javax.xml.soap.SOAPBody;
+import javax.xml.soap.SOAPConnection;
+import javax.xml.soap.SOAPConnectionFactory;
+import javax.xml.soap.SOAPConstants;
+import javax.xml.soap.SOAPElement;
+import javax.xml.soap.SOAPEnvelope;
+import javax.xml.soap.SOAPException;
+import javax.xml.soap.SOAPMessage;
+import javax.xml.soap.SOAPPart;
+import javax.xml.transform.Source;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.stream.StreamResult;
 
 import org.apache.commons.codec.binary.Base64;
 
+@SuppressWarnings("restriction")
 public class DaxtraSOAPClientSAAJ {
 
-    @SuppressWarnings("restriction")
+	 public static final String url = "http://cvxdemo.daxtra.com/cvvalid/CVXtractorService.wsdl";
+	 
+	 public static final String encodeString = "";
 	public static void main(String args[]) throws Exception {
-        // Create SOAP Connection
+        testFirstMessage();
+        //testLegalMessageAccess();
+    }
+
+	private static void testFirstMessage() throws SOAPException, Exception {
+		// Create SOAP Connection
         SOAPConnectionFactory soapConnectionFactory = SOAPConnectionFactory.newInstance();
         SOAPConnection soapConnection = soapConnectionFactory.createConnection();
 
         // Send SOAP Message to SOAP Server
-        String url = "http://cvxdemo.daxtra.com/cvvalid/CVXtractorService.wsdl";
+       
         SOAPMessage soapResponse = soapConnection.call(createSOAPRequest(), url);
 
         // print SOAP Response
         System.out.print("Response SOAP Message:");
-        soapResponse.writeTo(System.out);
-
+        createSoapResponse(soapResponse);
+        
         soapConnection.close();
-    }
+	}
 
-    @SuppressWarnings("restriction")
 	private static SOAPMessage createSOAPRequest() throws Exception {
         SOAPMessage soapMessage = MessageFactory.newInstance(SOAPConstants.SOAP_1_2_PROTOCOL).createMessage();
         soapMessage.getSOAPPart().getEnvelope().setPrefix("x");
@@ -62,8 +85,8 @@ public class DaxtraSOAPClientSAAJ {
         SOAPElement soapBodyElem2 = soapBodyElem.addChildElement("account", "cvx");
         soapBodyElem2.addTextNode("InsightGlobalCVXDEMO");
 
-       /* MimeHeaders headers = soapMessage.getMimeHeaders();
-        headers.addHeader("SOAPAction", serverURI  + "ConvertCV");*/
+        MimeHeaders headers = soapMessage.getMimeHeaders();
+        headers.addHeader("SOAPAction", serverURI  + "#ConvertCV");
 
         soapMessage.saveChanges();
 
@@ -92,5 +115,43 @@ public class DaxtraSOAPClientSAAJ {
         }
         return encodedBase64;
     }
+    
+	private static void createSoapResponse(SOAPMessage soapResponse) throws Exception  {
+		TransformerFactory transformerFactory = TransformerFactory.newInstance();
+		Transformer transformer = transformerFactory.newTransformer();
+		Source sourceContent = soapResponse.getSOAPPart().getContent();
+		System.out.println("\n----------SOAP Response-----------");
+		StreamResult result = new StreamResult(System.out);
+		transformer.transform(sourceContent, result);
+	 }
 
+    
+	public static void  testLegalMessageAccess() throws Exception
+    {
+       MessageFactory msgFactory = MessageFactory.newInstance();
+       SOAPConnection con = SOAPConnectionFactory.newInstance().createConnection();
+
+       String reqEnv = 
+          "<x:Envelope xmlns:x='http://schemas.xmlsoap.org/soap/envelope/' xmlns:cvx='CVXtractorService'>" + 
+          " <x:Header/>" + 
+          " <x:Body>" + 
+          "  <cvx:ConvertCV>" + 
+          "   <cvx:document_url>"+prepareBase64()+"</cvx:document_url>" + 
+          "		<cvx:account>InsightGlobalCVXDEMO</cvx:account>"+
+          "  </cvx:ConvertCV>" + 
+          " </x:Body>" + 
+          "</x:Envelope>";
+       SOAPMessage reqMsg = msgFactory.createMessage(null, new ByteArrayInputStream(reqEnv.getBytes()));
+
+       URL epURL = new URL(url);
+       SOAPMessage resMsg = con.call(reqMsg, epURL);
+
+       // print SOAP Response
+       System.out.print("Response SOAP Message:");
+       createSoapResponse(resMsg);
+       
+       con.close();
+       
+       }
+     
 }
